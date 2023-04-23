@@ -2,8 +2,6 @@
 using HarmonyLib;
 using Il2Cpp;
 using hourglass_item;
-using Il2Cppresult2_H;
-using Il2Cppnewdata_H;
 using Il2Cppfacility_H;
 
 [assembly: MelonInfo(typeof(HourglassItem), "Hourglass item", "1.0.0", "Matthiew Purple")]
@@ -18,7 +16,8 @@ public class HourglassItem : MelonMod
     {
         public static void Postfix(ref fclDataShop_t pData)
         {
-            pData.BuyItemList[pData.BuyItemCnt++] = 57; // Adds the hourglass
+            // Adds the hourglass to the shop
+            pData.BuyItemList[pData.BuyItemCnt++] = 57;
         }
     }
 
@@ -40,7 +39,7 @@ public class HourglassItem : MelonMod
         public static void Postfix(ref int id, ref string __result)
         {
             // If searching for the hourglass, returns its description
-            if (id == 57) __result = "Lets time pass \nuntil a full Kagutsuchi.";
+            if (id == 57) __result = "Passes the time \nuntil a full Kagutsuchi.";
         }
     }
 
@@ -51,7 +50,24 @@ public class HourglassItem : MelonMod
         public static void Postfix(ref int nskill)
         {
             // If using an hourglass, set the Kagutsuchi phase to full
-            if (nskill == 78) dds3GlobalWork.DDS3_GBWK.Moon.Age = 8;
+            if (nskill == 78)
+            {
+                if (evtMoon.evtGetAgeOfMoon16() != 8)
+                {
+                    // If the full Kagutsuchi has already passed
+                    if (evtMoon.evtGetAgeOfMoon16() > 8)
+                    {
+                        // Clear all effects that last "until a new kagutsuchi"
+                        fldMain.fldEsutoMaClearMsg();
+                        fldMain.fldRiberaMaClearMsg();
+                        fldMain.fldRifutoMaClearMsg();
+                        fldMain.fldLightMaClearMsg();
+                    }
+
+                    dds3GlobalWork.DDS3_GBWK.Moon.MoveCnt = 0; // Beginning of a new phase
+                    evtMoon.evtSetAgeOfMoon(8); // Set Kagutsuchi's phase to full
+                }                
+            }
         }
     }
 
